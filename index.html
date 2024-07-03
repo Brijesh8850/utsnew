@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@3.2.20/dist/vue.global.prod.js"></script>
+</head>
+<style>
+    body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #e70b0b;
+    }
+        header {
+        display: flex;
+        justify-content: center;
+        flex-direction: column; 
+    }
+    .header-title {
+        font-size: 300%;
+        text-align: center; /* Center align the text */
+        margin-top: 6%; /* Remove default margin */
+        margin-bottom: 0;
+    }
+    nav input {
+        margin:0%;
+        padding: 4%;
+        padding-left: 5%;
+        padding-right: 12%;
+        width: 80%;
+        margin-left:1%;
+        margin-top: 0;
+        border-radius: 5px;
+    }
+    main div {
+        width: 25%;
+        height: 50px;
+    }
+    main {
+        display: flex;
+        justify-content: center;
+        margin-top: 1%;
+    }
+    .western, .central, .harbour, .trans, .all {
+        background-color: #201c6d;
+        font-size: larger;
+        display: flex;
+        color: white;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        border: 1px solid black;
+        transition: background-color 0.3s ease;
+        flex-direction: column; /* Added to make flex items stack vertically */
+        padding: 10px;
+        text-align: center;
+    }
+    .western:hover, .central:hover, .harbour:hover, .trans:hover, .all:hover {
+        background-color: #e0e0e0;
+        color: black;
+    }
+    ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    li {
+        padding: 10px;
+        /* background-color: #ffffff; */
+        border: 1px solid #ccc;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    li:nth-child(1) {
+        background-color: rgb(230, 173, 173);
+    }
+
+    li:hover {
+        background-color: #f0f0f0;
+    }
+    ul img {
+        max-width: 100%;
+        height: auto;
+        margin-top: 5px;
+        display: none; 
+    }
+    ul.active img {
+        display: block;
+    }
+    main div span {
+        font-size: x-small;
+    }
+</style>
+<body id="app">
+    <header>
+        <h1 class="header-title">UTS QR CODE</h1><br>
+        <nav class="navbar">
+            <input type="text" v-model="searchQuery" @input="filterStations" placeholder="Search Station">
+        </nav>
+    </header>
+    <main>
+        <div class="all" @click="populateArray('all')">ALL<span>Station</span></div>
+        <div class="western" @click="populateArray('western')">W<span>Western</span></div>
+        <div class="central" @click="populateArray('central')">C<span>Central</span></div>
+        <div class="harbour" @click="populateArray('harbour')">H<span>Harbour</span></div>
+        <div class="trans" @click="populateArray('trans')">T<span>Trans</span></div>
+    </main>
+
+    <div>
+        <ul v-for="item in displayedItems" :key="item" :class="{ active: activeItem === item }">
+            <li @click="toggleImage(item)">
+                {{ item.toUpperCase() }}  
+               
+            </li>
+            <img v-if="activeItem === item" :src="imageSrc" alt="Station Image">
+        </ul>
+    </div>
+     
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    western: [
+                        "churchgate", "marine lines", "charni road", "grant road",
+                        "mumbai central", "mahalaxmi", "lower parel", "prabhadevi",
+                        "dadar", "matunga road", "mahim junction", "bandra",
+                        "khar road", "santacruz", "ville parle", "andheri",
+                        "jogeshwari", "goregaon", "malad", "kandivali",
+                        "borivali", "dahisar", "mira road", "bhayandar",
+                        "naigaon", "vasai road", "nallasopara", "virar",
+                        "vaitarna", "saphale", "kelva road", "palghar",
+                        "umroli", "boisar", "vangaon", "dahanu road"
+                    ],
+                    all: [
+                        "airoli","ambernath","ambivli","andheri","apta",
+                        "asangaon","atgaon","badlapur","bamandongri","bandra",
+                        "belapur","bhandup","bhayandar","bhivpuri road","boisar","borivali",
+                        "byculla","charni road","chembur","chinchpokali","chunna bhatti",
+                        "churchgate","cotton green","csmt","currey road","dadar","dahanu road",
+                        "dahisar","dativali","diva junction","dockyard road","dolavali","dombivali",
+                        "ghansoli","ghatkopar","goregaon","govandi","grant road","gtb nagar",
+                        "hamarapur","jite","jogeshwari","juchandra road","juinagar","jumapatti",
+                        "kalamboli","kalva","kalyan","kaman road","kandivali","kanjur marg","karjat",
+                        "kasara","kasu","kelavali","kelve road","khadavali","khandeshwar","khar road"
+                        ,"kharbao","khardi","kharghar","kharkopar","khopoli","kings circle","kopar khairane",
+                        "kopar","kurla","lower parel","lowjee","mahalaxmi","mahim junction",
+                        "malad","mangaon","mankhurd","mansa rovar","marine lines","masjid",
+                        "matheran","matunga road","matunga","mira road","mulund","mumbai central",
+                        "mumbra","nagothane","nahur","naigaon","nallasopara","navade road","neral",
+                        "nerul","nidi","nilje","palasdhari","palghar","panvel","parel","pen","prabhadevi",
+                        "rabale","ram mandir","rasayani","reay road","roha","sandhurst road","sanpada",
+                        "santa cruz","saphale","seawood darawe","sewri","shahad","shelu","sion","somtane",
+                        "taloja panchanand","thakurli","thane","thansit","tilak nagar","titwala","turbhe",
+                        "ulhasnagar","umbermali","umroli","vadala road","vaitarna","vangani","vangaon",
+                        "vasai road","vashi","vasind","vidya vihar","vikhroli","ville parle","virar"
+                        ,"vithalwadi"
+                    ],
+                    central: [
+                        "csmt", "masjid", "sandhurst road", "byculla", "chinchpokali",
+                        "currey road", "parel", "dadar", "matunga", "sion", "kurla",
+                        "vidyavihar", "ghatkopar", "vikhroli", "kanjurmarg", "bhandup",
+                        "nahur", "mulund", "thane", "kalva", "mumbra", "diva junction",
+                        "dombivali", "thakurli", "kalyan", "vithalwadi", "ulhasnagar",
+                        "ambernath", "belapur", "vangani", "shelu", "neral", "bhivpuri",
+                        "karjat", "palasdhari", "kelavali", "dolavali", "lowjee", "khopoli",
+                        "shahad", "ambivli", "titwala", "khadavali", "vasind", "asangaon",
+                        "atgaon", "thansit", "khardi", "umbermali", "kasara"
+                    ],
+                    harbour: [
+                        "csmt", "masjid", "dockyard road", "reay road",
+                        "cotton green", "sewri*", "vadala road", "king circle", "mahim junction",
+                        "bandra", "khar road", "santacruz", "ville parle", "andheri", "jogeshwari",
+                        "ram mandir", "goregaon", "gtb nagar", "chunnabhatti", "kurla", "tilak nagar",
+                        "chembur", "govandi", "mankhurd", "vashi", "sanpada", "juinagar", "nerul",
+                        "seawood darawe", "kharghar", "mansarovar", "khandeshwar", "panvel"
+                    ],
+                    trans: [
+                        "thane", "airoli", "rabale", "ghansoli", "kopar khairane", "turbhe",
+                        "juinagar", "nerul", "seawood darawe", "badlapur", "kharghar",
+                        "mansarovar", "khandeshwar", "panvel"
+                    ],
+                    displayedItems: [],
+                    activeItem: null,
+                    imageSrc: '',
+                    searchQuery: '', 
+                };
+                
+            },
+            computed: {
+        filteredAll() {
+            return this.all.filter(item => item.toLowerCase().includes(this.searchQuery.toLowerCase()));
+        }
+    },
+    created() {
+        // Populate 'all' array by default when the component is created
+        this.populateArray('all');
+    },
+            methods: {
+                populateArray(section) {
+                    switch (section) {
+                        case 'all':
+                            this.displayedItems = this.all;
+                            this. activeItem= null;
+                            break;
+                        case 'western':
+                            this.displayedItems = this.western;
+                            this. activeItem= null;
+                            break;
+                        case 'central':
+                            this.displayedItems = this.central;
+                            this. activeItem= null;
+                            break;
+                        case 'harbour':
+                            this.displayedItems = this.harbour;
+                            this. activeItem= null;
+                            break;
+                        case 'trans':
+                            this.displayedItems = this.trans;
+                            this. activeItem= null;
+                            break;
+                        default:
+                            this.displayedItems = [];
+                    }
+                },
+                filterStations(section) {
+                this.displayedItems = this.filteredAll;
+                 },
+                toggleImage(item) {
+                    if (this.activeItem === item) {
+                        this.activeItem = null; 
+                    } else {
+                        this.activeItem = item; 
+                        this.loadImage(item);
+                    }
+                },
+                loadImage(item) {
+                    const basePath = `./image/${item.toLowerCase().replace(/\s+/g, '')}`;
+                    const extensions = ['jpg', 'jpeg', 'png', 'gif'];
+                    this.imageSrc = ''; 
+                    let found = false;
+
+                    for (let ext of extensions) {
+                        const img = new Image();
+                        img.src = `${basePath}.${ext}`;
+                        img.onload = () => {
+                            if (!found) {
+                                this.imageSrc = img.src;
+                                found = true;
+                            }
+                        };
+                        img.onerror = () => {
+                            console.log(`Image ${img.src} not found.`);
+                        };
+                    }
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
